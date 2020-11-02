@@ -11,16 +11,20 @@ namespace TinaX.GameStage
 {
     public class GameStageCore : IGameStage , IGameStageInternal
     {
+        [Inject]public IXCore Core { get; set; }
+
         //key:stageName
         private Dictionary<string, StageControllerBase> m_DictStages = new Dictionary<string, StageControllerBase>();
         private List<StageControllerBase> m_Stages = new List<StageControllerBase>();
+
+        private List<StageControllerBase> m_DI = new List<StageControllerBase>(); //如果是Start阶段之前注册进来的，并且需要依赖注入的Controller，在这里缓存
 
         /// <summary>
         /// 初始Stage
         /// </summary>
         private StageControllerBase m_InitialStage;
 
-        private bool m_Inited = false;
+        private bool m_Started = false;
 
         private StageControllerBase m_CurrentStage;
 
@@ -30,12 +34,17 @@ namespace TinaX.GameStage
         {
             lock (this)
             {
-                if (m_Inited)
+                if (m_Started)
                     return null;
             }
 
             lock (this)
             {
+                foreach (var item in m_DI)
+                    Core.Services.Inject(item);
+
+                m_DI.Clear();
+                    
                 foreach (var item in m_DictStages)
                 {
                     item.Value.GameStages = this;
@@ -45,7 +54,7 @@ namespace TinaX.GameStage
                 if (m_InitialStage != null)
                     this.switchStage(m_InitialStage);
 
-                m_Inited = true;
+                m_Started = true;
             }
             await Task.Yield();
             return null;
@@ -91,10 +100,16 @@ namespace TinaX.GameStage
                 //依赖注入
                 if(DI)
                 {
-                    XCore.GetMainInstance().Services.Inject(stageController);
+                    lock (this)
+                    {
+                        if (m_Started)
+                            Core.Services.Inject(stageController);
+                        else
+                            m_DI.Add(stageController);
+                    }
                 }
 
-                if (m_Inited)
+                if (m_Started)
                 {
                     stageController.OnInit(stageName);
                     if (m_InitialStage == stageController)
