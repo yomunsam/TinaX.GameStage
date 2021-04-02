@@ -1,6 +1,6 @@
 {
   "name": "io.nekonya.tinax.gamestage",
-  "version": "6.6.1-preview",
+  "version": "6.6.2-preview",
   "displayName": "TinaX.GameStage",
   "description": "Global state machine\n贯穿游戏全局的状态机",
   "unity": "2019.4",

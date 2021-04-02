@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using TinaX.GameStage.Exceptions;
 using TinaX.GameStage.Internal;
@@ -114,6 +114,7 @@ namespace TinaX.GameStage
                     stageController.OnInit(stageName);
                     if (m_InitialStage == stageController)
                         this.switchStage(m_InitialStage);
+                    stageController.GameStages = this;
                 }
             }
         }
